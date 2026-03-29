@@ -1,0 +1,56 @@
+const BASE_URL = '/api'
+
+export async function fetchPapers(query, limit = 10) {
+  const resp = await fetch(`${BASE_URL}/papers?q=${encodeURIComponent(query)}&limit=${limit}`)
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}))
+    throw new Error(err.detail || `Failed to fetch papers (${resp.status})`)
+  }
+  return resp.json()
+}
+
+export async function summarizeText(text, title = '') {
+  const resp = await fetch(`${BASE_URL}/summarize`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, title }),
+  })
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}))
+    throw new Error(err.detail || 'Summarization failed')
+  }
+  return resp.json()
+}
+
+export async function uploadPDF(file) {
+  const form = new FormData()
+  form.append('file', file)
+  const resp = await fetch(`${BASE_URL}/upload-pdf`, {
+    method: 'POST',
+    body: form,
+  })
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}))
+    throw new Error(err.detail || 'PDF upload failed')
+  }
+  return resp.json()
+}
+
+export async function chatWithPaper(question, contextText = '') {
+  const resp = await fetch(`${BASE_URL}/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question, context_text: contextText }),
+  })
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}))
+    throw new Error(err.detail || 'Chat failed')
+  }
+  return resp.json()
+}
+
+export async function getRagStatus() {
+  const resp = await fetch(`${BASE_URL}/rag-status`)
+  if (!resp.ok) return { index_ready: false, chunks: 0, sources: [] }
+  return resp.json()
+}
